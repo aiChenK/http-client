@@ -1,0 +1,360 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: ck865
+ * Date: 2019-08-08
+ * Time: 9:10
+ */
+
+namespace HttpClient;
+
+use HttpClient\Core\Response;
+
+class Client
+{
+    private $ch;
+    private $baseUrl      = '';
+    private $options      = [];
+    private $headerParams = [];
+    private $queryParams  = [];
+    private $bodyParams   = [];
+
+    //初始化
+    public function __construct($baseUrl = null)
+    {
+        $this->ch = curl_init();
+        //不自动输出
+        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($this->ch, CURLOPT_ENCODING, 'UTF-8');
+        curl_setopt($this->ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+        if ($baseUrl) {
+            $this->setBaseUrl($baseUrl);
+        }
+    }
+
+    //销毁
+    public function __destruct()
+    {
+        $this->headerParams = [];
+        $this->options = [];
+        curl_close($this->ch);
+    }
+
+    //设置基础url
+    public function setBaseUrl($baseUrl)
+    {
+        $this->baseUrl = $baseUrl;
+        return $this;
+    }
+
+    //设置curl属性
+    private function setOption($option, $value)
+    {
+        $this->options[$option] = $value;
+        return $this;
+    }
+
+    //批量设置curl属性
+    public function setOptions($options)
+    {
+        $this->options = $options + $this->options;
+        return $this;
+    }
+
+    public function verifySSL($verify = false)
+    {
+        $this->setOptions([
+            CURLOPT_SSL_VERIFYPEER => $verify,
+            CURLOPT_SSL_VERIFYHOST => $verify
+        ]);
+        return $this;
+    }
+
+    //设置超时时间
+    public function setTimeout($timeout)
+    {
+        if ($timeout == 0) {
+            unset($this->options[CURLOPT_TIMEOUT], $this->options[CURLOPT_TIMEOUT_MS]);
+        } elseif ($timeout < 1) {
+            //libcurl>=7.16.2
+            $timeout = $timeout * 1000;
+            $this->setOption(CURLOPT_TIMEOUT_MS, $timeout);
+        } else {
+            $this->setOption(CURLOPT_TIMEOUT, $timeout);
+        }
+        return $this;
+    }
+
+    //设置连接超时时间
+    public function setConnectTimeout($timeout)
+    {
+        if ($timeout == 0) {
+            unset($this->options[CURLOPT_CONNECTTIMEOUT], $this->options[CURLOPT_CONNECTTIMEOUT_MS]);
+        } elseif ($timeout < 1) {
+            //libcurl>=7.16.2
+            $timeout = $timeout * 1000;
+            $this->setOption(CURLOPT_CONNECTTIMEOUT_MS, $timeout);
+        } else {
+            $this->setOption(CURLOPT_CONNECTTIMEOUT, $timeout);
+        }
+        return $this;
+    }
+
+    //设置userAgent
+    public function setUserAgent($userAgent)
+    {
+        return $this->setOption(CURLOPT_USERAGENT, $userAgent);
+    }
+
+    //设置http头属性
+    public function setHeader($option, $value)
+    {
+        $this->headerParams[$option] = $value;
+        return $this;
+    }
+
+    //批量设置http头属性
+    public function setHeaders(array $options)
+    {
+        $this->headerParams = array_merge($this->headerParams, $options);
+        return $this;
+    }
+
+    //删除http头属性
+    public function removeHeader($name)
+    {
+        unset($this->headerParams[$name]);
+        return $this;
+    }
+
+    //设置query参数
+    public function setQueryParams($params)
+    {
+        $this->queryParams = $params;
+        return $this;
+    }
+
+    //设置body参数
+    public function setBodyParams($params, $json = false)
+    {
+        if ($json) {
+            $this->setHeader('Content-Type', 'application/json');
+            $params = json_encode($params, JSON_UNESCAPED_UNICODE);
+        }
+        $this->bodyParams = $params;
+        return $this;
+    }
+
+    //处理并设置http头
+    private function resolveHeader()
+    {
+        if (!empty($this->headerParams)) {
+            $headerLine = [];
+            foreach ($this->headerParams as $field => $value) {
+                $headerLine[] = $field . ': ' . $value;
+            }
+            $this->setOption(CURLOPT_HTTPHEADER, $headerLine);
+        }
+    }
+
+    //处理正文
+    private function resolveBody($useEncoding = true)
+    {
+        if (is_array($this->bodyParams)) {
+            //有文件则不使用urlencode
+            foreach ($this->bodyParams as $param) {
+                if ((is_string($param) && strpos($param, '@') === 0) || ($param instanceof \CURLFile)) {
+                    $useEncoding = false;
+                    break;
+                }
+            }
+            if ($useEncoding) {
+                $this->bodyParams = http_build_query($this->bodyParams);
+            }
+        }
+        if ($this->bodyParams) {
+            $this->setOption(CURLOPT_POSTFIELDS, $this->bodyParams);
+        }
+    }
+
+
+    //是否跟随跳转
+    public function followLocation($follow = false)
+    {
+        return $this->setOption(CURLOPT_FOLLOWLOCATION, $follow);
+    }
+
+    /**
+     * GET方式请求
+     *
+     * @param $path
+     * @param array $query
+     * @return Response
+     * @throws \Exception
+     *
+     * create by ck 20190808
+     */
+    public function get($path, $query = [])
+    {
+        $this->setQueryParams($query);
+        $this->setOptions([
+            CURLOPT_HTTPGET => true,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+        ]);
+
+        return $this->send($path);
+    }
+
+    /**
+     * POST方式请求
+     *
+     * @param $path
+     * @param array $params
+     * @param bool $useEncoding
+     * @return Response
+     * @throws \Exception
+     *
+     * create by ck 20190808
+     */
+    public function post($path, $params = [], $useEncoding = true)
+    {
+        $this->setBodyParams($params);
+        $this->setOptions([
+            CURLOPT_POST => true,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+        ]);
+
+        return $this->send($path, $useEncoding);
+    }
+
+    /**
+     * POST方式提交json数据
+     *
+     * @param $path
+     * @param array $params
+     * @param bool $useEncoding
+     * @return Response
+     * @throws \Exception
+     *
+     * create by ck 20190808
+     */
+    public function postJson($path, $params = [], $useEncoding = true)
+    {
+        $this->setHeader('Content-Type', 'application/json');
+        return $this->post($path, json_encode($params, JSON_UNESCAPED_UNICODE), $useEncoding);
+    }
+
+    /**
+     * DELETE方式请求
+     *
+     * @param $path
+     * @param array $query
+     * @return Response
+     * @throws \Exception
+     *
+     * create by ck 20190808
+     */
+    public function delete($path, $query = [])
+    {
+        $this->setQueryParams($query);
+        $this->setOptions([
+            CURLOPT_HTTPGET => true,
+            CURLOPT_CUSTOMREQUEST => 'DELETE',
+        ]);
+
+        return $this->send($path);
+    }
+
+    /**
+     * PUT方式请求
+     *
+     * @param $path
+     * @param array $params
+     * @param bool $useEncoding
+     * @return Response
+     * @throws \Exception
+     *
+     * create by ck 20190808
+     */
+    public function put($path, $params = [], $useEncoding = true)
+    {
+        $this->setBodyParams($params);
+        $this->setOptions([
+            CURLOPT_CUSTOMREQUEST => 'PUT',
+        ]);
+
+        return $this->send($path, $useEncoding);
+    }
+
+    /**
+     * PATCH方式请求
+     *
+     * @param $path
+     * @param array $params
+     * @param bool $useEncoding
+     * @return Response
+     * @throws \Exception
+     *
+     * create by ck 20190808
+     */
+    public function patch($path, $params = [], $useEncoding = true)
+    {
+        $this->setBodyParams($params);
+        $this->setOptions([
+            CURLOPT_CUSTOMREQUEST => 'PATCH',
+        ]);
+
+        return $this->send($path, $useEncoding);
+    }
+
+    /**
+     * 发送
+     *
+     * @param string $path
+     * @param bool $useEncoding
+     * @return Response
+     * @throws \Exception
+     *
+     * create by ck 20190808
+     */
+    private function send($path = '', $useEncoding = true)
+    {
+        //处理query参数
+        if ($this->queryParams) {
+            $path .= '?' . (is_array($this->queryParams) ? http_build_query($this->queryParams) : $this->queryParams);
+        }
+
+        //处理url
+        $url = $this->baseUrl
+            ? rtrim($this->baseUrl, '/ ') . '/' . ltrim($path, '/ ')
+            : $path;
+        $this->setOption(CURLOPT_URL, $url);
+
+        //处理header
+        $this->resolveHeader();
+
+        //处理body正文，有文件则不进行encode
+        $this->resolveBody($useEncoding);
+
+//        $this->setOption(CURLOPT_NOBODY, true);   //只获取头部
+        $this->setOption(CURLOPT_HEADER, true); //获取头部
+        @curl_setopt_array($this->ch, $this->options);
+
+        $result = curl_exec($this->ch);
+
+        return $this->resolveResponse($result);
+    }
+
+    /**
+     * @param $result
+     * @return Response
+     * @throws \Exception
+     */
+    private function resolveResponse($result)
+    {
+        if ($result === false) {
+            throw new \Exception(curl_error($this->ch));
+        }
+        return new Response($result, $this->ch);
+    }
+}

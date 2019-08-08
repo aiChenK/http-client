@@ -1,0 +1,20 @@
+{
+    "name": "aichenk/http-client",
+    "description": "Simple Http Client",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "aiChenK",
+            "email": "aichenk@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "HttpClient\\" : "src/"
+        }
+    }
+}
