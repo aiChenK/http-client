@@ -26,3 +26,8 @@ $response = $client->get('/check.php', ['a' => 1]);
  
 echo $response->getBody();
 ```
+
+## 更新日志
+2019-08-11 1.0.2
+- 更改setConnectTimeout|setTimeout实现方式
+- 增加libcurl库版本>=7.16.2要求

@@ -26,7 +26,6 @@ class Client
         //不自动输出
         curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($this->ch, CURLOPT_ENCODING, 'UTF-8');
-        curl_setopt($this->ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         if ($baseUrl) {
             $this->setBaseUrl($baseUrl);
         }
@@ -61,6 +60,7 @@ class Client
         return $this;
     }
 
+    //验证证书
     public function verifySSL($verify = false)
     {
         $this->setOptions([
@@ -70,32 +70,30 @@ class Client
         return $this;
     }
 
-    //设置超时时间
-    public function setTimeout($timeout)
+    //是否跟随跳转
+    public function followLocation($follow = false)
     {
-        if ($timeout == 0) {
-            unset($this->options[CURLOPT_TIMEOUT], $this->options[CURLOPT_TIMEOUT_MS]);
-        } elseif ($timeout < 1) {
-            //libcurl>=7.16.2
-            $timeout = $timeout * 1000;
-            $this->setOption(CURLOPT_TIMEOUT_MS, $timeout);
-        } else {
+        return $this->setOption(CURLOPT_FOLLOWLOCATION, $follow);
+    }
+
+    //设置超时时间
+    public function setTimeout($timeout, $ms = false)
+    {
+        if (!$ms) {
             $this->setOption(CURLOPT_TIMEOUT, $timeout);
+        } else {
+            $this->setOption(CURLOPT_TIMEOUT_MS, $timeout);
         }
         return $this;
     }
 
     //设置连接超时时间
-    public function setConnectTimeout($timeout)
+    public function setConnectTimeout($timeout, $ms = false)
     {
-        if ($timeout == 0) {
-            unset($this->options[CURLOPT_CONNECTTIMEOUT], $this->options[CURLOPT_CONNECTTIMEOUT_MS]);
-        } elseif ($timeout < 1) {
-            //libcurl>=7.16.2
-            $timeout = $timeout * 1000;
-            $this->setOption(CURLOPT_CONNECTTIMEOUT_MS, $timeout);
-        } else {
+        if (!$ms) {
             $this->setOption(CURLOPT_CONNECTTIMEOUT, $timeout);
+        } else {
+            $this->setOption(CURLOPT_CONNECTTIMEOUT_MS, $timeout);
         }
         return $this;
     }
@@ -175,13 +173,6 @@ class Client
         if ($this->bodyParams) {
             $this->setOption(CURLOPT_POSTFIELDS, $this->bodyParams);
         }
-    }
-
-
-    //是否跟随跳转
-    public function followLocation($follow = false)
-    {
-        return $this->setOption(CURLOPT_FOLLOWLOCATION, $follow);
     }
 
     /**

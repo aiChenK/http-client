@@ -13,6 +13,7 @@ use HttpClient\Client;
 
 $client = new Client('http://aichenk.com');
 //$client->verifySSL(false);
+$client->setConnectTimeout(1);
 $response = $client->get('/check.php', ['a' => 1]);
 
 echo $response->getBody();
