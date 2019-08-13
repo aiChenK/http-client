@@ -76,7 +76,7 @@ class Client
         return $this->setOption(CURLOPT_FOLLOWLOCATION, $follow);
     }
 
-    //设置超时时间
+    //设置超时时间，libcurl >= 7.16.2
     public function setTimeout($timeout, $ms = false)
     {
         if (!$ms) {
