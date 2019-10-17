@@ -13,7 +13,7 @@
 2. 在`composer.json`中声明
 
         "require": {
-            "aichenk/http-client": "^1.0"
+            "aichenk/http-client": "^2.0"
         }
             
 
