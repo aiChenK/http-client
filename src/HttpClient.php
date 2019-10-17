@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: ck865
+ * User: aiChenK
  * Date: 2019-08-08
  * Time: 9:10
  */
@@ -9,8 +9,9 @@
 namespace HttpClient;
 
 use HttpClient\Core\Response;
+use HttpClient\Exception\ConnectionException;
 
-class Client
+class HttpClient
 {
     private $ch;
     private $baseUrl      = '';
@@ -339,12 +340,12 @@ class Client
     /**
      * @param $result
      * @return Response
-     * @throws \Exception
+     * @throws ConnectionException
      */
     private function resolveResponse($result)
     {
         if ($result === false) {
-            throw new \Exception(curl_error($this->ch));
+            throw new ConnectionException(curl_error($this->ch));
         }
         return new Response($result, $this->ch);
     }

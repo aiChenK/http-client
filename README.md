@@ -24,10 +24,18 @@ $client = new Client('http://aichenk.com');
 //$client->verifySSL(false);
 $response = $client->get('/check.php', ['a' => 1]);
  
+if (!$response->isSuccess()) {
+    //do something
+}
 echo $response->getBody();
 ```
 
 ## 更新日志
+2019-10-17 2.0.0
+- `Client`命名更改为`HttpClient`
+- 增加异常类
+- `Response`类增加`getCode|is?xx`方法判断返回值
+
 2019-08-13 1.0.3
 - php版本要求增加到5.6
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: ck865
+ * User: aiChenK
  * Date: 2019-08-08
  * Time: 9:10
  */
@@ -21,7 +21,6 @@ class Response
      * Response constructor.
      * @param $result
      * @param $ch
-     * @throws \Exception
      */
     public function __construct($result, $ch)
     {
@@ -47,6 +46,11 @@ class Response
         }
     }
 
+    public function getCode()
+    {
+        return $this->code;
+    }
+
     public function getHeader()
     {
         return $this->header;
@@ -60,6 +64,27 @@ class Response
     public function getJsonBody($assoc = true)
     {
         return json_decode($this->rawBody, $assoc);
+    }
+
+    //same as is2xx
+    public function isSuccess()
+    {
+        return $this->is2xx();
+    }
+
+    public function is2xx()
+    {
+        return substr($this->code, 0, 1) == 2;
+    }
+
+    public function is4xx()
+    {
+        return substr($this->code, 0, 1) == 4;
+    }
+
+    public function is5xx()
+    {
+        return substr($this->code, 0, 1) == 4;
     }
 
 }
