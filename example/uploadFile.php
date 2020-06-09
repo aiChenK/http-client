@@ -6,15 +6,14 @@
  * Time: 10:41
  */
 
-require_once dirname(__DIR__) . '/src/Bootstrap.php';
-\HttpClient\Bootstrap::init();
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use HttpClient\HttpClient;
 
 
 try {
     $client = new HttpClient('http://test.aichenk.com');
-    $response = $client->post('/php/uploadfile.php', ['file' => new \CURLFile('./test.log')]);
+    $response = $client->post('/http/uploadFile.php', ['file' => new \CURLFile('./test.log')]);
 
     if (!$response->isSuccess()) {
         //do something

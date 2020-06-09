@@ -84,7 +84,7 @@ class Response
 
     public function is5xx()
     {
-        return substr($this->code, 0, 1) == 4;
+        return substr($this->code, 0, 1) == 5;
     }
 
 }

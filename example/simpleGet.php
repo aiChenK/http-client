@@ -6,8 +6,7 @@
  * Time: 14:59
  */
 
-require_once dirname(__DIR__) . '/src/Bootstrap.php';
-\HttpClient\Bootstrap::init();
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use HttpClient\HttpClient;
 
@@ -16,7 +15,7 @@ try {
     $client = new HttpClient('http://test.aichenk.com');
     //$client->verifySSL(false);
     $client->setConnectTimeout(1);
-    $response = $client->get('/', ['a' => 1]);
+    $response = $client->get('/http/index.php', ['a' => 1]);
 
     if (!$response->isSuccess()) {
         //do something
