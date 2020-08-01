@@ -31,6 +31,9 @@ echo $response->getBody();
 ```
 
 ## 更新日志
+2020-08-02 - 2.0.2
+- 所有请求增加`CURLOPT_POSTFIELDS`参数
+
 2020-06-09 - 2.0.1
 - 修复`Response`类中`is5xx`方法
 

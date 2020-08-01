@@ -171,9 +171,7 @@ class HttpClient
                 $this->bodyParams = http_build_query($this->bodyParams);
             }
         }
-        if ($this->bodyParams) {
-            $this->setOption(CURLOPT_POSTFIELDS, $this->bodyParams);
-        }
+        $this->setOption(CURLOPT_POSTFIELDS, $this->bodyParams ?: '');
     }
 
     /**
