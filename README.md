@@ -31,6 +31,9 @@ echo $response->getBody();
 ```
 
 ## 更新日志
+2020-08-28 - 2.0.3
+- 增加`setConnExceptionHandle`方法自定义处理连接异常
+
 2020-08-02 - 2.0.2
 - 所有请求增加`CURLOPT_POSTFIELDS`参数
 

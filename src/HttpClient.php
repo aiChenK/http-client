@@ -20,6 +20,8 @@ class HttpClient
     private $queryParams  = [];
     private $bodyParams   = [];
 
+    private $connExceptionHandler = null;
+
     //初始化
     public function __construct($baseUrl = null)
     {
@@ -44,6 +46,13 @@ class HttpClient
     public function setBaseUrl($baseUrl)
     {
         $this->baseUrl = $baseUrl;
+        return $this;
+    }
+
+    //设置连接失败回调
+    public function setConnExceptionHandle($callback)
+    {
+        $this->connExceptionHandler = $callback;
         return $this;
     }
 
@@ -343,7 +352,11 @@ class HttpClient
     private function resolveResponse($result)
     {
         if ($result === false) {
-            throw new ConnectionException(curl_error($this->ch));
+            if ($this->connExceptionHandler !== null) {
+                call_user_func($this->connExceptionHandler, curl_error($this->ch));
+            } else {
+                throw new ConnectionException(curl_error($this->ch));
+            }
         }
         return new Response($result, $this->ch);
     }

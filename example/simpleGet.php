@@ -13,6 +13,7 @@ use HttpClient\HttpClient;
 
 try {
     $client = new HttpClient('http://test.aichenk.com');
+    $client->setConnExceptionHandle('errorMsg');
     //$client->verifySSL(false);
     $client->setConnectTimeout(1);
     $response = $client->get('/http/index.php', ['a' => 1]);
@@ -27,3 +28,7 @@ try {
     echo 'Exception:' . $e->getMessage();
 }
 
+
+function errorMsg($msg) {
+    var_dump($msg);die;
+}
