@@ -16,7 +16,8 @@ try {
     $client->setConnExceptionHandle('errorMsg');
     //$client->verifySSL(false);
     $client->setConnectTimeout(1);
-    $response = $client->get('/http/index.php', ['a' => 1]);
+    $response = $client->postJson('/http/index.php', ['a' => 1]);
+
 
     if (!$response->isSuccess()) {
         //do something

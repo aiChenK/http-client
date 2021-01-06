@@ -11,6 +11,15 @@ namespace HttpClient;
 use HttpClient\Core\Response;
 use HttpClient\Exception\ConnectionException;
 
+/**
+ * Class HttpClient
+ * @package HttpClient
+ * @method Response getJson(string $path, $query = [])
+ * @method Response postJson(string $path, $params = [])
+ * @method Response putJson(string $path, $query = [])
+ * @method Response patchJson(string $path, $query = [])
+ * @method Response deleteJson(string $path, $query = [])
+ */
 class HttpClient
 {
     private $ch;
@@ -227,23 +236,6 @@ class HttpClient
     }
 
     /**
-     * POST方式提交json数据
-     *
-     * @param $path
-     * @param array $params
-     * @param bool $useEncoding
-     * @return Response
-     * @throws \Exception
-     *
-     * create by ck 20190808
-     */
-    public function postJson($path, $params = [], $useEncoding = true)
-    {
-        $this->setHeader('Content-Type', 'application/json');
-        return $this->post($path, json_encode($params, JSON_UNESCAPED_UNICODE), $useEncoding);
-    }
-
-    /**
      * DELETE方式请求
      *
      * @param $path
@@ -304,6 +296,32 @@ class HttpClient
         ]);
 
         return $this->send($path, $useEncoding);
+    }
+
+    /**
+     * Json请求方式
+     *
+     * @param $method
+     * @param $args
+     * @return false|mixed
+     *
+     * @author aiChenK
+     */
+    public function __call($method, $args)
+    {
+        //Json结尾快捷方式
+        if (substr($method, -4) === 'Json') {
+            $method = substr($method, 0, -4);
+            if (!in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
+                throw new \BadMethodCallException();
+            }
+            $this->setHeader('Content-Type', 'application/json');
+            if (isset($args[1])) {
+                $args[1] = json_encode($args[1], JSON_UNESCAPED_UNICODE);
+            }
+            return call_user_func_array([$this, $method], $args);
+        }
+        throw new \BadMethodCallException();
     }
 
     /**
