@@ -16,15 +16,16 @@ try {
     $client->setConnExceptionHandle('errorMsg');
     //$client->verifySSL(false);
     $client->setConnectTimeout(1);
-    $response = $client->postJson('/http/index.php', ['a' => 1]);
+//    $response = $client->postJson('/http/index.php', ['a' => 1]);
+    $response = $client->get('/http/index.php', ['a' => 1]);
 
 
     if (!$response->isSuccess()) {
         //do something
         //throw new \Exception('request error');
     }
-    echo $response->getBody();
-    //print_r($response->getJsonBody());
+//    echo $response->getBody();
+    print_r($response->getInfo());
 } catch (\Throwable $e) {
     echo 'Exception:' . $e->getMessage();
 }

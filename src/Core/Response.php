@@ -14,23 +14,25 @@ class Response
     private $rawBody;
 
     private $code;
-    private $totalTime;
     private $header;
+
+    private $info;
 
     /**
      * Response constructor.
      * @param $result
      * @param $ch
+     * @param $requestBody
      */
-    public function __construct($result, $ch)
+    public function __construct($result, $ch, $requestBody)
     {
         $result = explode("\r\n\r\n", $result);
         $this->rawBody   = array_pop($result);
         $this->rawHeader = array_pop($result);
 
         $this->code      = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $this->totalTime = curl_getinfo($ch, CURLINFO_TOTAL_TIME);
         $this->_parseHeader();
+        $this->_parseInfo($ch, $requestBody);
     }
 
     private function _parseHeader()
@@ -44,6 +46,18 @@ class Response
                 $this->header[$field[0]] = $field[1];
             }
         }
+    }
+
+    private function _parseInfo($ch, $requestBody)
+    {
+        $this->info               = new Info();
+        $this->info->requestBody  = $requestBody;
+        $this->info->url          = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+        $this->info->httpCode     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $this->info->requestSize  = curl_getinfo($ch, CURLINFO_REQUEST_SIZE);
+        $this->info->totalTime    = curl_getinfo($ch, CURLINFO_TOTAL_TIME);
+        $this->info->connectTime  = curl_getinfo($ch, CURLINFO_CONNECT_TIME);
+        $this->info->responseBody = &$this->rawBody;
     }
 
     public function getCode()
@@ -87,4 +101,13 @@ class Response
         return substr($this->code, 0, 1) == 5;
     }
 
+    /**
+     * 返回请求信息
+     *
+     * @return Info
+     */
+    public function getInfo()
+    {
+        return $this->info;
+    }
 }
