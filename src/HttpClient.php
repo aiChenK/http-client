@@ -29,10 +29,11 @@ class HttpClient
     private $queryParams  = [];
     private $bodyParams   = [];
 
-    private $connExceptionHandler = null;
+    private $connExceptionHandler;
+    private $resetAfterRequest = false;
 
     //初始化
-    public function __construct($baseUrl = null)
+    public function __construct($baseUrl = null, $resetAfterRequest = false)
     {
         $this->ch = curl_init();
         //不自动输出
@@ -41,6 +42,7 @@ class HttpClient
         if ($baseUrl) {
             $this->setBaseUrl($baseUrl);
         }
+        $this->resetAfterRequest($resetAfterRequest);
     }
 
     //销毁
@@ -79,12 +81,19 @@ class HttpClient
         return $this;
     }
 
+    //请求后重置
+    public function resetAfterRequest($reset = false)
+    {
+        $this->resetAfterRequest = $reset;
+        return $this;
+    }
+
     //验证证书
     public function verifySSL($verify = false)
     {
         $this->setOptions([
-            CURLOPT_SSL_VERIFYPEER => $verify,
-            CURLOPT_SSL_VERIFYHOST => $verify
+            CURLOPT_SSL_VERIFYPEER => (bool)$verify,
+            CURLOPT_SSL_VERIFYHOST => (bool)$verify
         ]);
         return $this;
     }
@@ -359,7 +368,29 @@ class HttpClient
 
         $result = curl_exec($this->ch);
 
-        return $this->resolveResponse($result);
+        $response = $this->resolveResponse($result);
+
+        //清空数据
+        if ($this->resetAfterRequest) {
+            $this->resetRequest();
+        }
+
+        return $response;
+    }
+
+    /**
+     * 重置参数
+     *
+     * @return $this
+     *
+     * @author aiChenK
+     */
+    public function resetRequest()
+    {
+        $this->queryParams  = [];
+        $this->headerParams = [];
+        $this->bodyParams   = [];
+        return $this;
     }
 
     /**
