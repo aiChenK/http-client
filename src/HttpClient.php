@@ -407,6 +407,6 @@ class HttpClient
                 throw new ConnectionException(curl_error($this->ch));
             }
         }
-        return new Response($result, $this->ch, $this->bodyParams);
+        return new Response($result, $this->ch, $this->bodyParams, $this->options);
     }
 }

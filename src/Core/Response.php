@@ -23,8 +23,9 @@ class Response
      * @param $result
      * @param $ch
      * @param $requestBody
+     * @param $options
      */
-    public function __construct($result, $ch, $requestBody)
+    public function __construct($result, $ch, $requestBody, $options)
     {
         $result = explode("\r\n\r\n", $result);
         $this->rawBody   = array_pop($result);
@@ -32,7 +33,7 @@ class Response
 
         $this->code      = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $this->_parseHeader();
-        $this->_parseInfo($ch, $requestBody);
+        $this->_parseInfo($ch, $requestBody, $options);
     }
 
     private function _parseHeader()
@@ -48,11 +49,12 @@ class Response
         }
     }
 
-    private function _parseInfo($ch, $requestBody)
+    private function _parseInfo($ch, $requestBody, $options)
     {
         $this->info               = new Info();
         $this->info->requestBody  = $requestBody;
         $this->info->url          = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+        $this->info->method       = $options[CURLOPT_CUSTOMREQUEST] ?? 'GET';
         $this->info->httpCode     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $this->info->requestSize  = curl_getinfo($ch, CURLINFO_REQUEST_SIZE);
         $this->info->totalTime    = curl_getinfo($ch, CURLINFO_TOTAL_TIME);

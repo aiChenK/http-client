@@ -31,6 +31,9 @@ echo $response->getBody();
 ```
 
 ## 更新日志
+2022-04-15 - v2.1.2
+- `Response->getInfo()` 方法增加`method`信息
+
 2022-01-05 - v2.1.1
 - `HttpClient`增加`resetAfterRequest`构建函数参数、`resetAfterRequest($reset = false)`方法，请求结束后重置请求参数
 
