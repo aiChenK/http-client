@@ -43,7 +43,7 @@ class Response
             if (!is_array($field)) {
                 $field = array_map('trim', explode(':', $field, 2));
             }
-            if (count($field) == 2) {
+            if (count($field) === 2) {
                 $this->header[$field[0]] = $field[1];
             }
         }
@@ -54,7 +54,7 @@ class Response
         $this->info               = new Info();
         $this->info->requestBody  = $requestBody;
         $this->info->url          = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
-        $this->info->method       = $options[CURLOPT_CUSTOMREQUEST] ?? 'GET';
+        $this->info->method       = isset($options[CURLOPT_CUSTOMREQUEST]) ? $options[CURLOPT_CUSTOMREQUEST] : 'GET';
         $this->info->httpCode     = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $this->info->requestSize  = curl_getinfo($ch, CURLINFO_REQUEST_SIZE);
         $this->info->totalTime    = curl_getinfo($ch, CURLINFO_TOTAL_TIME);
@@ -90,17 +90,17 @@ class Response
 
     public function is2xx()
     {
-        return substr($this->code, 0, 1) == 2;
+        return $this->code >= 200 && $this->code < 300;
     }
 
     public function is4xx()
     {
-        return substr($this->code, 0, 1) == 4;
+        return $this->code >= 400 && $this->code < 500;
     }
 
     public function is5xx()
     {
-        return substr($this->code, 0, 1) == 5;
+        return $this->code >= 500 && $this->code < 600;
     }
 
     /**

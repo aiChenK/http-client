@@ -31,6 +31,9 @@ echo $response->getBody();
 ```
 
 ## 更新日志
+2022-04-24 - v2.1.3
+- 修复`Response`高语法问题
+
 2022-04-15 - v2.1.2
 - `Response->getInfo()` 方法增加`method`信息
 
